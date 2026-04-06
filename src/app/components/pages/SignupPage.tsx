@@ -23,6 +23,7 @@ export function SignupPage() {
     childLevel: "",
     // Professional fields
     specialty: "",
+    location: "",
     availability: "",
     price: "",
   });
@@ -185,6 +186,17 @@ const handleSubmit = (e: React.FormEvent) => {
                         <SelectItem value="educateur">Éducateur spécialisé</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Localisation</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => updateField("location", e.target.value)}
+                      placeholder="Ville, Tunisie"
+                      className="h-12 border-2"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="availability">Disponibilité</Label>
