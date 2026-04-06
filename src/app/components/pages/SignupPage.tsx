@@ -6,6 +6,7 @@ import { Label } from "../ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Heart, Users, Stethoscope } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { MARKETPLACE_COUNTRIES } from "../../lib/mockData";
 
 type Role = "parent" | "professional" | null;
 
@@ -16,12 +17,12 @@ export function SignupPage() {
     name: "",
     email: "",
     password: "",
+    country: "",
     // Parent fields
     childAge: "",
     childLevel: "",
     // Professional fields
     specialty: "",
-    location: "",
     availability: "",
     price: "",
   });
@@ -119,6 +120,26 @@ const handleSubmit = (e: React.FormEvent) => {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="country">Pays</Label>
+                <Select
+                  value={formData.country}
+                  onValueChange={(value) => updateField("country", value)}
+                  required
+                >
+                  <SelectTrigger id="country" className="h-12 border-2">
+                    <SelectValue placeholder="Sélectionner votre pays" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MARKETPLACE_COUNTRIES.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {role === "parent" && (
                 <>
                   <div className="space-y-2">
@@ -164,17 +185,6 @@ const handleSubmit = (e: React.FormEvent) => {
                         <SelectItem value="educateur">Éducateur spécialisé</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Localisation</Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => updateField("location", e.target.value)}
-                      placeholder="Ville, Tunisie"
-                      className="h-12 border-2"
-                      required
-                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="availability">Disponibilité</Label>

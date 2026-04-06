@@ -435,6 +435,8 @@ export const mockProfessionals: Professional[] = [
   },
 ];
 
+export const MARKETPLACE_COUNTRIES = ['Tunis', 'Ariana', 'Sousse', 'Sfax', 'Nabeul'];
+
 const defaultTherapyRequests: TherapyRequest[] = [
   {
     id: '1',
