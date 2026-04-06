@@ -5,7 +5,7 @@ import { Card } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
-import { addTherapyRequest, getStoredMarketplaceServices, mockProfessionals, MarketplaceServiceOffer, Professional } from "../../../lib/mockData";
+import { addTherapyRequest, getStoredMarketplaceServices, MARKETPLACE_SERVICES_STORAGE_KEY, mockProfessionals, MarketplaceServiceOffer, Professional } from "../../../lib/mockData";
 import { MessageDialog } from "../../shared/MessageDialog";
 import { SessionBookingDialog } from "../../shared/SessionBookingDialog";
 import { ReviewDialog } from "../../shared/ReviewDialog";
@@ -28,19 +28,33 @@ export function ParentMarketplace() {
   const { user } = useAuth();
 
   useEffect(() => {
-    const loadMarketplaceData = () => {
+    const loadMarketplaceData = (event?: Event) => {
       const savedProfessionals = JSON.parse(localStorage.getItem('professionals') || '[]') as Professional[];
       const normalizedSavedProfessionals = savedProfessionals.filter((professional) => {
         const professionalId = typeof professional.id === 'string' ? professional.id : '';
         return professional.name.trim().toLowerCase() !== 'adammoosbusiness' && !professionalId.startsWith('service-');
       });
 
+      const marketplaceServices = event instanceof CustomEvent && Array.isArray(event.detail)
+        ? event.detail
+        : getStoredMarketplaceServices();
+      const cleanedMarketplaceServices = marketplaceServices.filter((service) => {
+        const isZeroReviewAmiraService =
+          service.professionalName.trim().toLowerCase() === 'dr. amira ben said' && Number(service.reviews) === 0;
+
+        return !isZeroReviewAmiraService;
+      });
+
+      if (cleanedMarketplaceServices.length !== marketplaceServices.length) {
+        localStorage.setItem(MARKETPLACE_SERVICES_STORAGE_KEY, JSON.stringify(cleanedMarketplaceServices));
+      }
+
       if (normalizedSavedProfessionals.length !== savedProfessionals.length) {
         localStorage.setItem('professionals', JSON.stringify(normalizedSavedProfessionals));
       }
 
       setProfessionals([...mockProfessionals, ...normalizedSavedProfessionals]);
-      setMarketplaceServices(getStoredMarketplaceServices());
+      setMarketplaceServices(cleanedMarketplaceServices);
     };
 
     loadMarketplaceData();
@@ -64,6 +78,13 @@ export function ParentMarketplace() {
     return matchesSearch && matchesCity && matchesSpecialty;
   });
 
+  const visibleProfessionals = filteredProfessionals.filter((professional) => {
+    const isZeroReviewAmiraCard =
+      professional.name.trim().toLowerCase() === 'dr. amira ben said' && Number(professional.reviews) === 0;
+
+    return !isZeroReviewAmiraCard;
+  });
+
   const filteredMarketplaceServices = marketplaceServices.filter((service) => {
     const matchesSearch = service.professionalName.toLowerCase().includes(searchTerm.toLowerCase()) || service.specialty.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCity = selectedCity === "all" || service.location.toLowerCase().includes(selectedCity.toLowerCase());
@@ -71,6 +92,8 @@ export function ParentMarketplace() {
 
     return matchesSearch && matchesCity && matchesSpecialty;
   });
+
+  const visibleMarketplaceServices = filteredMarketplaceServices.slice(-1);
 
   const handleBookSession = (professional: Professional) => {
     setSelectedProfessional(professional);
@@ -180,7 +203,7 @@ export function ParentMarketplace() {
         {(searchTerm || selectedCity !== "all" || selectedSpecialty !== "all") && (
           <div className="mt-4 flex items-center justify-between text-sm">
             <span className="text-gray-600">
-              {filteredProfessionals.length} professionnel(s) trouvé(s)
+              {visibleProfessionals.length} professionnel(s) trouvé(s)
             </span>
             <Button
               variant="ghost"
@@ -216,7 +239,7 @@ export function ParentMarketplace() {
       
       {/* Professionals List */}
       <div className="grid md:grid-cols-2 gap-6">
-        {filteredProfessionals.map((professional) => (
+        {visibleProfessionals.map((professional) => (
           <Card key={professional.id} className="p-6 hover:shadow-lg transition-shadow border-blue-100">
             <div className="flex gap-4 mb-4">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
@@ -298,17 +321,17 @@ export function ParentMarketplace() {
         ))}
       </div>
       
-      {filteredProfessionals.length === 0 && filteredMarketplaceServices.length === 0 && (
+      {visibleProfessionals.length === 0 && visibleMarketplaceServices.length === 0 && (
         <Card className="p-12 text-center border-gray-200">
           <p className="text-gray-600">Aucun professionnel trouvé avec ces critères</p>
         </Card>
       )}
 
-      {filteredMarketplaceServices.length > 0 && (
+      {visibleMarketplaceServices.length > 0 && (
         <div className="mt-10">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Nouveaux services</h2>
           <div className="grid md:grid-cols-2 gap-6">
-            {filteredMarketplaceServices.map((service) => (
+            {visibleMarketplaceServices.map((service) => (
               <Card key={service.id} className="p-6 hover:shadow-lg transition-shadow border-blue-100">
                 <div className="flex gap-4 mb-4">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold">

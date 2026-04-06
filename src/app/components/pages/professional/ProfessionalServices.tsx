@@ -5,9 +5,8 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../ui/dialog";
-import { clearMarketplaceServicesForProfessional, roundDownToMultipleOf5, syncMarketplaceServicesForProfessional, mockProfessionals } from "../../../lib/mockData";
+import { clearMarketplaceServicesForProfessional, roundDownToMultipleOf5, syncMarketplaceServicesForProfessional } from "../../../lib/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
-import { useAuth } from "../../../contexts/AuthContext";
 
 interface Service {
   id: string;
@@ -27,29 +26,16 @@ const DEFAULT_THERAPY_TYPES = [
   'Éducateur spécialisé',
 ];
 
-const defaultServices: Service[] = [
-  {
-    id: '1',
-    professionalId: 'default-professional',
-    therapyType: 'Orthophonie',
-    price: 40,
-    availability: 'Lundi - Vendredi, 9h-17h',
-    description: 'Séances d\'orthophonie pour améliorer la communication verbale',
-  },
-  {
-    id: '2',
-    professionalId: 'default-professional',
-    therapyType: 'Thérapie comportementale',
-    price: 50,
-    availability: 'Mardi - Samedi, 10h-18h',
-    description: 'Accompagnement comportemental adapté',
-  },
-];
-
 const MARKETPLACE_UPDATED_EVENT = 'auticare-marketplace-updated';
+const DEFAULT_PROFESSIONAL = {
+  id: 'default-professional',
+  name: 'Dr. Amira Ben Said',
+  location: 'Tunis, Centre-ville',
+  rating: 4.8,
+  reviews: 42,
+};
 
 export function ProfessionalServices() {
-  const { user } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   
   const [isAddingService, setIsAddingService] = useState(false);
@@ -62,7 +48,7 @@ export function ProfessionalServices() {
     description: '',
   });
 
-  const servicesStorageKey = useMemo(() => `professional_services_${user?.id ?? 'default'}`, [user?.id]);
+  const servicesStorageKey = useMemo(() => 'professional_services_default', []);
 
   const therapyTypeOptions = useMemo(() => {
     return Array.from(new Set([...DEFAULT_THERAPY_TYPES, ...services.map((service) => service.therapyType)]));
@@ -82,31 +68,16 @@ export function ProfessionalServices() {
   };
 
   useEffect(() => {
-    const savedServices = JSON.parse(localStorage.getItem(servicesStorageKey) || 'null') as Service[] | null;
-    const initialServices = (savedServices && savedServices.length > 0 ? savedServices : defaultServices).map((service) => ({
+    const savedServices = JSON.parse(localStorage.getItem(servicesStorageKey) || '[]') as Service[];
+    const normalizedServices = savedServices.map((service) => ({
       ...service,
-      professionalId: user?.id ?? service.professionalId,
+      professionalId: DEFAULT_PROFESSIONAL.id,
     }));
 
-    setServices(initialServices);
-    localStorage.setItem(servicesStorageKey, JSON.stringify(initialServices));
-
-    if (user && user.role === 'professional') {
-      // Get professional info from mockProfessionals or use current user data
-      const mockPro = mockProfessionals.find(p => p.name.toLowerCase() === user.name.toLowerCase());
-      
-      syncMarketplaceServicesForProfessional(
-        {
-          id: user.id,
-          name: user.name,
-          location: user.location || mockPro?.location || 'Tunis',
-          rating: mockPro?.rating ?? 4.8,
-          reviews: mockPro?.reviews ?? 0,
-        },
-        initialServices,
-      );
-    }
-  }, [servicesStorageKey, user]);
+    setServices(normalizedServices);
+    localStorage.setItem(servicesStorageKey, JSON.stringify(normalizedServices));
+    syncMarketplaceServicesForProfessional(DEFAULT_PROFESSIONAL, normalizedServices);
+  }, [servicesStorageKey]);
   
   const handleAddService = () => {
     const resolvedTherapyType = getResolvedTherapyType();
@@ -117,7 +88,7 @@ export function ProfessionalServices() {
 
     const newService: Service = {
       id: Date.now().toString(),
-      professionalId: user?.id ?? 'default-professional',
+      professionalId: DEFAULT_PROFESSIONAL.id,
       therapyType: resolvedTherapyType,
       price: roundDownToMultipleOf5(Number(formData.price)),
       availability: formData.availability,
@@ -127,21 +98,7 @@ export function ProfessionalServices() {
     const nextServices = [...services, newService];
     saveServices(nextServices);
 
-    if (user && user.role === 'professional') {
-      // Get professional info from mockProfessionals or use current user data
-      const mockPro = mockProfessionals.find(p => p.name.toLowerCase() === user.name.toLowerCase());
-      
-      syncMarketplaceServicesForProfessional(
-        {
-          id: user.id,
-          name: user.name,
-          location: user.location || mockPro?.location || 'Tunis',
-          rating: mockPro?.rating ?? 4.8,
-          reviews: mockPro?.reviews ?? 0,
-        },
-        nextServices,
-      );
-    }
+    syncMarketplaceServicesForProfessional(DEFAULT_PROFESSIONAL, nextServices);
 
     setFormData({ selectedTherapyType: '', customTherapyType: '', price: '', availability: '', description: '' });
     setIsAddingService(false);
@@ -169,21 +126,7 @@ export function ProfessionalServices() {
 
     saveServices(nextServices);
 
-    if (user && user.role === 'professional') {
-      // Get professional info from mockProfessionals or use current user data
-      const mockPro = mockProfessionals.find(p => p.name.toLowerCase() === user.name.toLowerCase());
-      
-      syncMarketplaceServicesForProfessional(
-        {
-          id: user.id,
-          name: user.name,
-          location: user.location || mockPro?.location || 'Tunis',
-          rating: mockPro?.rating ?? 4.8,
-          reviews: mockPro?.reviews ?? 0,
-        },
-        nextServices,
-      );
-    }
+    syncMarketplaceServicesForProfessional(DEFAULT_PROFESSIONAL, nextServices);
     
     setEditingService(null);
     setFormData({ selectedTherapyType: '', customTherapyType: '', price: '', availability: '', description: '' });
@@ -193,24 +136,10 @@ export function ProfessionalServices() {
     const nextServices = services.filter(s => s.id !== id);
     saveServices(nextServices);
 
-    if (user && user.role === 'professional') {
-      // Get professional info from mockProfessionals or use current user data
-      const mockPro = mockProfessionals.find(p => p.name.toLowerCase() === user.name.toLowerCase());
-      
-      syncMarketplaceServicesForProfessional(
-        {
-          id: user.id,
-          name: user.name,
-          location: user.location || mockPro?.location || 'Tunis',
-          rating: mockPro?.rating ?? 4.8,
-          reviews: mockPro?.reviews ?? 0,
-        },
-        nextServices,
-      );
+    syncMarketplaceServicesForProfessional(DEFAULT_PROFESSIONAL, nextServices);
 
-      if (nextServices.length === 0) {
-        clearMarketplaceServicesForProfessional(user.id);
-      }
+    if (nextServices.length === 0) {
+      clearMarketplaceServicesForProfessional(DEFAULT_PROFESSIONAL.id);
     }
   };
   

@@ -93,6 +93,14 @@ export interface MarketplaceServiceOffer {
 export const THERAPY_REQUESTS_UPDATED_EVENT = 'auticare-therapy-requests-updated';
 export const THERAPY_REQUESTS_STORAGE_KEY = 'auticare_therapy_requests';
 export const MARKETPLACE_SERVICES_STORAGE_KEY = 'auticare_marketplace_services';
+const DEFAULT_MARKETPLACE_PROFESSIONAL = {
+  id: 'default-professional',
+  name: 'Dr. Amira Ben Said',
+  location: 'Tunis, Centre-ville',
+  rating: 4.8,
+  reviews: 42,
+  email: 'amira.bensaid@email.com',
+};
 
 // Mock current user - in real app this would come from auth context
 export let currentUser: User | null = null;
@@ -271,24 +279,18 @@ export const getStoredMarketplaceServices = (): MarketplaceServiceOffer[] => {
 
   const parsedServices = JSON.parse(savedServices) as MarketplaceServiceOffer[];
 
-  // One-time cleanup requested: remove only one Dr. Amira service entry.
-  const hasRemovedAmiraService = localStorage.getItem('auticare_removed_one_amira_service');
-  if (!hasRemovedAmiraService) {
-    const amiraIndex = parsedServices.findIndex((service) =>
-      service.professionalName.trim().toLowerCase() === 'dr. amira ben said'
-    );
+  const normalizedServices = parsedServices.map((service) => ({
+    ...service,
+    professionalName: DEFAULT_MARKETPLACE_PROFESSIONAL.name,
+    location: DEFAULT_MARKETPLACE_PROFESSIONAL.location,
+    rating: DEFAULT_MARKETPLACE_PROFESSIONAL.rating,
+    reviews: DEFAULT_MARKETPLACE_PROFESSIONAL.reviews,
+    email: DEFAULT_MARKETPLACE_PROFESSIONAL.email,
+  }));
 
-    if (amiraIndex !== -1) {
-      const nextServices = parsedServices.filter((_, index) => index !== amiraIndex);
-      localStorage.setItem(MARKETPLACE_SERVICES_STORAGE_KEY, JSON.stringify(nextServices));
-      localStorage.setItem('auticare_removed_one_amira_service', 'true');
-      return nextServices;
-    }
+  localStorage.setItem(MARKETPLACE_SERVICES_STORAGE_KEY, JSON.stringify(normalizedServices));
 
-    localStorage.setItem('auticare_removed_one_amira_service', 'true');
-  }
-
-  return parsedServices;
+  return normalizedServices;
 };
 
 export const saveStoredMarketplaceServices = (services: MarketplaceServiceOffer[]) => {
@@ -297,7 +299,7 @@ export const saveStoredMarketplaceServices = (services: MarketplaceServiceOffer[
   }
 
   localStorage.setItem(MARKETPLACE_SERVICES_STORAGE_KEY, JSON.stringify(services));
-  window.dispatchEvent(new CustomEvent('auticare-marketplace-updated'));
+  window.dispatchEvent(new CustomEvent<MarketplaceServiceOffer[]>('auticare-marketplace-updated', { detail: services }));
 };
 
 export const syncMarketplaceServicesForProfessional = (professional: {
@@ -312,29 +314,44 @@ export const syncMarketplaceServicesForProfessional = (professional: {
   }
 
   const existingServices = getStoredMarketplaceServices();
-  const remainingServices = existingServices.filter((service) => service.professionalId !== professional.id);
+  const normalizedProfessionalName = professional.name.trim().toLowerCase();
+  const normalizedDefaultName = DEFAULT_MARKETPLACE_PROFESSIONAL.name.trim().toLowerCase();
+  const normalizedDefaultEmail = DEFAULT_MARKETPLACE_PROFESSIONAL.email.trim().toLowerCase();
+
+  const remainingServices = existingServices.filter((service) => {
+    const normalizedServiceName = service.professionalName.trim().toLowerCase();
+    const normalizedServiceEmail = service.email?.trim().toLowerCase();
+
+    const belongsToSyncedProfessional =
+      service.professionalId === professional.id ||
+      normalizedServiceName === normalizedProfessionalName ||
+      normalizedServiceName === normalizedDefaultName ||
+      normalizedServiceEmail === normalizedDefaultEmail;
+
+    return !belongsToSyncedProfessional;
+  });
 
   const profInfo = getProfessionalFullInfo(professional.id, professional.name);
 
-  // Only sync the last (most recently added) service
   const lastService = services[services.length - 1];
-  
-  const nextServices = lastService ? [
-    ...remainingServices,
-    {
-      id: `${professional.id}-${lastService.id}`,
-      professionalId: professional.id,
-      professionalName: professional.name,
-      specialty: lastService.therapyType,
-      location: professional.location ?? 'Tunis',
-      availability: lastService.availability,
-      price: lastService.price,
-      description: lastService.description,
-      rating: professional.rating ?? 4.8,
-      reviews: professional.reviews ?? 0,
-      email: profInfo.email,
-    },
-  ] : remainingServices;
+  const nextServices = lastService
+    ? [
+        ...remainingServices,
+        {
+          id: `${professional.id}-${lastService.id}`,
+          professionalId: professional.id,
+          professionalName: professional.name,
+          specialty: lastService.therapyType,
+          location: professional.location ?? 'Tunis',
+          availability: lastService.availability,
+          price: lastService.price,
+          description: lastService.description,
+          rating: professional.rating ?? 4.8,
+          reviews: professional.reviews ?? 0,
+          email: profInfo.email,
+        },
+      ]
+    : remainingServices;
 
   saveStoredMarketplaceServices(nextServices);
 };
@@ -344,7 +361,19 @@ export const clearMarketplaceServicesForProfessional = (professionalId: string) 
     return;
   }
 
-  const remainingServices = getStoredMarketplaceServices().filter((service) => service.professionalId !== professionalId);
+  const normalizedDefaultName = DEFAULT_MARKETPLACE_PROFESSIONAL.name.trim().toLowerCase();
+  const normalizedDefaultEmail = DEFAULT_MARKETPLACE_PROFESSIONAL.email.trim().toLowerCase();
+
+  const remainingServices = getStoredMarketplaceServices().filter((service) => {
+    const normalizedServiceName = service.professionalName.trim().toLowerCase();
+    const normalizedServiceEmail = service.email?.trim().toLowerCase();
+
+    return (
+      service.professionalId !== professionalId &&
+      normalizedServiceName !== normalizedDefaultName &&
+      normalizedServiceEmail !== normalizedDefaultEmail
+    );
+  });
   saveStoredMarketplaceServices(remainingServices);
 };
 

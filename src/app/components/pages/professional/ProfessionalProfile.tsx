@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { User, Briefcase, MapPin, Clock, DollarSign, Star, Edit2, Save } from "lucide-react";
 import { Card } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Textarea } from "../../ui/textarea";
-import { useAuth } from "../../../contexts/AuthContext";
-import { mockProfessionals } from "../../../lib/mockData";
 
 const DEFAULT_PRO_PROFILE = {
   name: 'Dr. Amira Ben Said',
@@ -22,23 +20,8 @@ const DEFAULT_PRO_PROFILE = {
 };
 
 export function ProfessionalProfile() {
-  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  
-  const initialProfileData = useMemo(() => {
-    // Check if current user matches a professional in mockProfessionals
-    const mockPro = mockProfessionals.find(p => p.name.toLowerCase() === user?.name?.toLowerCase());
-    
-    return {
-      ...DEFAULT_PRO_PROFILE,
-      name: user?.name || DEFAULT_PRO_PROFILE.name,
-      specialty: user?.specialty || DEFAULT_PRO_PROFILE.specialty,
-      location: user?.location || DEFAULT_PRO_PROFILE.location,
-      price: String(user?.price ?? DEFAULT_PRO_PROFILE.price),
-      email: mockPro?.email || user?.email || DEFAULT_PRO_PROFILE.email,
-      phone: user?.phone || DEFAULT_PRO_PROFILE.phone,
-    };
-  }, [user]);
+  const initialProfileData = DEFAULT_PRO_PROFILE;
   const [profileData, setProfileData] = useState(initialProfileData);
 
   useEffect(() => {
