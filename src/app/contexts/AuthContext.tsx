@@ -22,13 +22,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_PROFESSIONALS: Record<string, Pick<User, 'name' | 'specialty' | 'location' | 'price'>> = {
+const DEMO_PROFESSIONALS: Record<string, Pick<User, 'name' | 'specialty' | 'location' | 'price' | 'phone'>> = {
   adammoosbusiness: {
     name: 'Dr. Amira Ben Said',
     specialty: 'Orthophoniste',
     location: 'Tunis, Centre-ville',
     price: 40,
     phone: '+216 20 123 456',
+  },
+};
+
+const DEMO_PARENTS: Record<string, Pick<User, 'name'>> = {
+  'sarah.hamadi': {
+    name: 'Sarah Hamdi',
+  },
+  adammoosyou1: {
+    name: 'Sarah Hamdi',
   },
 };
 
@@ -39,6 +48,19 @@ const sanitizeForId = (value: string) => value.replace(/[^a-z0-9_-]/gi, '-').toL
 const buildDemoUser = (email: string, role: UserRole): User => {
   const localPart = getEmailLocalPart(email);
   const stableId = `${role}-${sanitizeForId(localPart || 'demo-user')}`;
+
+  if (role === 'parent') {
+    const demoParent = DEMO_PARENTS[localPart];
+
+    if (demoParent) {
+      return {
+        id: stableId,
+        email,
+        role,
+        name: demoParent.name,
+      };
+    }
+  }
 
   if (role === 'professional') {
     const demoProfessional = DEMO_PROFESSIONALS[localPart];

@@ -464,6 +464,23 @@ const defaultTherapyRequests: TherapyRequest[] = [
   },
 ];
 
+const normalizeParentName = (request: TherapyRequest): TherapyRequest => {
+  const normalizedParentName = request.parentName.trim().toLowerCase();
+  const normalizedParentId = request.parentId.trim().toLowerCase();
+  const shouldUseSarahName =
+    normalizedParentName === 'adammoosyou1' ||
+    normalizedParentId === 'parent-adammoosyou1';
+
+  if (!shouldUseSarahName) {
+    return request;
+  }
+
+  return {
+    ...request,
+    parentName: 'Sarah Hamdi',
+  };
+};
+
 export const getStoredTherapyRequests = (): TherapyRequest[] => {
   if (typeof window === 'undefined') {
     return defaultTherapyRequests;
@@ -478,10 +495,18 @@ export const getStoredTherapyRequests = (): TherapyRequest[] => {
 
   try {
     const parsed = JSON.parse(savedRequests) as TherapyRequest[];
-    return parsed.map((request) => ({
-      ...request,
-      confirmed: request.confirmed ?? false,
-    }));
+    const normalizedRequests = parsed.map((request) => {
+      const requestWithDefaults = {
+        ...request,
+        confirmed: request.confirmed ?? false,
+      };
+
+      return normalizeParentName(requestWithDefaults);
+    });
+
+    localStorage.setItem(THERAPY_REQUESTS_STORAGE_KEY, JSON.stringify(normalizedRequests));
+
+    return normalizedRequests;
   } catch {
     localStorage.setItem(THERAPY_REQUESTS_STORAGE_KEY, JSON.stringify(defaultTherapyRequests));
     return defaultTherapyRequests;
