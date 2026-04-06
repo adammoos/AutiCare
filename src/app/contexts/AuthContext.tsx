@@ -36,6 +36,9 @@ const DEMO_PARENTS: Record<string, Pick<User, 'name'>> = {
   'sarah.hamadi': {
     name: 'Sarah Hamdi',
   },
+  'sarah.hamdi': {
+    name: 'Sarah Hamdi',
+  },
   adammoosyou1: {
     name: 'Sarah Hamdi',
   },
