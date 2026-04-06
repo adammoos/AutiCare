@@ -8,7 +8,7 @@ import { Label } from "../../ui/label";
 import { Textarea } from "../../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Calendar } from "../../ui/calendar";
-import { mockProfessionals, Professional } from "../../../lib/mockData";
+import { addTherapyRequest, mockProfessionals, Professional } from "../../../lib/mockData";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useNotifications } from "../../../contexts/NotificationContext";
 import { fr } from 'date-fns/locale';
@@ -45,26 +45,17 @@ export function ParentTherapyRequest() {
     }
 
     setIsSubmitting(true);
-    
-    // Sauvegarder la demande dans localStorage
-    const requests = JSON.parse(localStorage.getItem('therapy_requests') || '[]');
-    const newRequest = {
-      id: `req-${Date.now()}`,
+
+    addTherapyRequest({
       parentId: user?.id || 'current-user',
       parentName: user?.name || 'Parent actuel',
       professionalId: formData.professionalId,
-      professionalName: formData.professionalName,
       therapyType: formData.therapyType,
-      childName: formData.childName,
-      childAge: Number(formData.childAge),
       description: formData.description,
-      preferredDate: format(formData.preferredDate, 'yyyy-MM-dd'),
+      availability: `Date préférée: ${format(formData.preferredDate, 'dd/MM/yyyy')}`,
       status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    
-    requests.push(newRequest);
-    localStorage.setItem('therapy_requests', JSON.stringify(requests));
+      confirmed: false,
+    });
     
     // Notifier le professionnel (simulation)
     addNotification({

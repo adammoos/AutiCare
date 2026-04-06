@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, X, Phone, MessageCircle, Calendar } from "lucide-react";
 import { Card } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../ui/dialog";
-import { getStoredTherapyRequests, updateTherapyRequest } from "../../../lib/mockData";
+import { getStoredTherapyRequests, saveStoredTherapyRequests, updateTherapyRequest } from "../../../lib/mockData";
 
 export function ProfessionalRequests() {
   const [requests, setRequests] = useState(getStoredTherapyRequests());
@@ -14,6 +14,19 @@ export function ProfessionalRequests() {
     date: '',
     time: '',
   });
+
+  useEffect(() => {
+    const storedRequests = getStoredTherapyRequests();
+    const withoutRejected = storedRequests.filter((request) => request.status !== 'rejected');
+
+    if (withoutRejected.length !== storedRequests.length) {
+      saveStoredTherapyRequests(withoutRejected);
+      setRequests(withoutRejected);
+      return;
+    }
+
+    setRequests(storedRequests);
+  }, []);
   
   const handleReject = (requestId: string) => {
     updateTherapyRequest(requestId, { status: 'rejected' });

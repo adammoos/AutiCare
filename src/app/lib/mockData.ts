@@ -92,6 +92,7 @@ export interface MarketplaceServiceOffer {
 
 export const THERAPY_REQUESTS_UPDATED_EVENT = 'auticare-therapy-requests-updated';
 export const THERAPY_REQUESTS_STORAGE_KEY = 'auticare_therapy_requests';
+const LEGACY_THERAPY_REQUESTS_STORAGE_KEY = 'therapy_requests';
 export const MARKETPLACE_SERVICES_STORAGE_KEY = 'auticare_marketplace_services';
 const DEFAULT_MARKETPLACE_PROFESSIONAL = {
   id: 'default-professional',
@@ -465,8 +466,8 @@ const defaultTherapyRequests: TherapyRequest[] = [
 ];
 
 const normalizeParentName = (request: TherapyRequest): TherapyRequest => {
-  const normalizedParentName = request.parentName.trim().toLowerCase();
-  const normalizedParentId = request.parentId.trim().toLowerCase();
+  const normalizedParentName = (request.parentName ?? '').toString().trim().toLowerCase();
+  const normalizedParentId = (request.parentId ?? '').toString().trim().toLowerCase();
   const shouldUseSarahName =
     normalizedParentName === 'adammoosyou1' ||
     normalizedParentId === 'parent-adammoosyou1';
@@ -489,15 +490,61 @@ export const getStoredTherapyRequests = (): TherapyRequest[] => {
   const savedRequests = localStorage.getItem(THERAPY_REQUESTS_STORAGE_KEY);
 
   if (!savedRequests) {
+    const legacySavedRequests = localStorage.getItem(LEGACY_THERAPY_REQUESTS_STORAGE_KEY);
+
+    if (!legacySavedRequests) {
+      localStorage.setItem(THERAPY_REQUESTS_STORAGE_KEY, JSON.stringify(defaultTherapyRequests));
+      return defaultTherapyRequests;
+    }
+
+    try {
+      const legacyParsed = JSON.parse(legacySavedRequests) as TherapyRequest[];
+
+      if (Array.isArray(legacyParsed) && legacyParsed.length > 0) {
+        const migratedLegacyRequests = legacyParsed.map((request) => {
+          const requestWithDefaults: TherapyRequest = {
+            ...request,
+            parentId: request.parentId ?? 'parent-legacy',
+            parentName: request.parentName ?? 'Parent',
+            therapyType: request.therapyType ?? 'Thérapie',
+            description: request.description ?? '',
+            availability: request.availability ?? 'Non précisé',
+            status: request.status ?? 'pending',
+            createdAt: request.createdAt ?? new Date().toISOString(),
+            confirmed: request.confirmed ?? false,
+          };
+
+          return normalizeParentName(requestWithDefaults);
+        });
+
+        localStorage.setItem(THERAPY_REQUESTS_STORAGE_KEY, JSON.stringify(migratedLegacyRequests));
+        return migratedLegacyRequests;
+      }
+    } catch {
+      // Fall through to default seed when legacy data is invalid.
+    }
+
     localStorage.setItem(THERAPY_REQUESTS_STORAGE_KEY, JSON.stringify(defaultTherapyRequests));
     return defaultTherapyRequests;
   }
 
   try {
     const parsed = JSON.parse(savedRequests) as TherapyRequest[];
+
+    if (!Array.isArray(parsed)) {
+      throw new Error('Invalid therapy requests payload');
+    }
+
     const normalizedRequests = parsed.map((request) => {
       const requestWithDefaults = {
         ...request,
+        parentId: request.parentId ?? 'parent-unknown',
+        parentName: request.parentName ?? 'Parent',
+        therapyType: request.therapyType ?? 'Thérapie',
+        description: request.description ?? '',
+        availability: request.availability ?? 'Non précisé',
+        status: request.status ?? 'pending',
+        createdAt: request.createdAt ?? new Date().toISOString(),
         confirmed: request.confirmed ?? false,
       };
 
@@ -530,14 +577,20 @@ export const addTherapyRequest = (request: Omit<TherapyRequest, 'id' | 'createdA
     id: `req-${Date.now()}`,
     createdAt: new Date().toISOString(),
   };
-  mockTherapyRequests = [...mockTherapyRequests, newRequest];
+
+  // Append to the latest persisted list to avoid resurrecting stale pending statuses.
+  const latestRequests = getStoredTherapyRequests();
+  mockTherapyRequests = [...latestRequests, newRequest];
   saveStoredTherapyRequests(mockTherapyRequests);
 
   return newRequest;
 };
 
 export const updateTherapyRequest = (id: string, updates: Partial<TherapyRequest>) => {
-  mockTherapyRequests = mockTherapyRequests.map(req => 
+  // Always update against the latest persisted snapshot to avoid stale in-memory overwrites.
+  const latestRequests = getStoredTherapyRequests();
+
+  mockTherapyRequests = latestRequests.map(req => 
     req.id === id ? { ...req, ...updates } : req
   );
   saveStoredTherapyRequests(mockTherapyRequests);
