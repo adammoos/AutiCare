@@ -111,11 +111,47 @@ const professionalDefaultNotifications: Notification[] = [
     message: 'Une demande d’évaluation reste à traiter dans vos demandes professionnelles.',
     contactInfo: 'Répondez ou refusez depuis la page Demandes.',
     actionLabel: 'Voir les demandes',
-    actionHref: '/professional/dashboard',
+    actionHref: '/professional/requests',
     createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     read: false,
   },
 ];
+
+const DEMAND_KEYWORD_REGEX = /demand|demande/i;
+
+const normalizeProfessionalNotificationLinks = (notifications: Notification[], role?: string): Notification[] => {
+  if (role !== 'professional') {
+    return notifications;
+  }
+
+  let hasChanges = false;
+
+  const normalizedNotifications = notifications.map((notification) => {
+    const label = notification.actionLabel ?? '';
+    const title = notification.title ?? '';
+    const message = notification.message ?? '';
+    const isDemandNotification =
+      notification.type === 'request' ||
+      DEMAND_KEYWORD_REGEX.test(label) ||
+      DEMAND_KEYWORD_REGEX.test(title) ||
+      DEMAND_KEYWORD_REGEX.test(message);
+
+    const pointsToParentRequests = notification.actionHref?.startsWith('/parent/requests');
+    const pointsToProfessionalDashboard = notification.actionHref === '/professional/dashboard';
+
+    if (isDemandNotification && (pointsToParentRequests || pointsToProfessionalDashboard)) {
+      hasChanges = true;
+      return {
+        ...notification,
+        actionHref: '/professional/requests',
+      };
+    }
+
+    return notification;
+  });
+
+  return hasChanges ? normalizedNotifications : notifications;
+};
 
 const getDefaultNotifications = (role?: string) => (
   role === 'professional' ? professionalDefaultNotifications : parentDefaultNotifications
@@ -171,7 +207,8 @@ const loadNotifications = (userId?: string, role?: string) => {
   const saved = storageKey ? localStorage.getItem(storageKey) : null;
 
   if (saved) {
-    const parsed = JSON.parse(saved) as Notification[];
+    const parsedRaw = JSON.parse(saved) as Notification[];
+    const parsed = normalizeProfessionalNotificationLinks(parsedRaw, role);
 
     if (parsed.length > 0) {
       const defaultNotifications = getDefaultNotifications(role);
@@ -188,6 +225,10 @@ const loadNotifications = (userId?: string, role?: string) => {
           localStorage.setItem(storageKey, JSON.stringify(defaultNotifications));
         }
         return defaultNotifications;
+      }
+
+      if (storageKey && parsed !== parsedRaw) {
+        localStorage.setItem(storageKey, JSON.stringify(parsed));
       }
 
       return parsed;

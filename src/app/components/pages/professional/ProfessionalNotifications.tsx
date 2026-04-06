@@ -18,29 +18,30 @@ export function ProfessionalNotifications() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <div className="bg-white border-b mb-8 rounded-2xl shadow-sm">
-        <div className="py-6 px-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+        <div className="py-6 px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Megaphone className="w-6 h-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-3xl font-semibold text-gray-900">Notifications professionnelles</h1>
-                <p className="text-gray-600 mt-1">Demandes, conférences et offres liées à votre activité</p>
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 truncate">Notifications</h1>
+                <p className="text-sm sm:text-base text-gray-600 mt-1 line-clamp-2">Demandes, conférences et offres liées à votre activité</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm text-gray-500">Non lues</p>
-                <p className="text-2xl font-bold text-gray-900">{unreadCount}</p>
+            <div className="flex items-center gap-2 sm:gap-3 self-start sm:self-center">
+              <div className="text-right sm:text-right">
+                <p className="text-xs sm:text-sm text-gray-500">Non lues</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{unreadCount}</p>
               </div>
               {notifications.some(n => !n.read) && (
                 <Button
                   onClick={markAllAsRead}
                   variant="outline"
-                  className="text-sm"
+                  className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 rounded-lg"
                 >
-                  Tout marquer comme lu
+                  <span className="hidden sm:inline">Tout marquer comme lu</span>
+                  <span className="sm:hidden">Tout lire</span>
                 </Button>
               )}
             </div>
@@ -69,11 +70,11 @@ export function ProfessionalNotifications() {
                     markAsRead(notification.id);
                   }
                 }}
-                className={`rounded-2xl border transition-all cursor-pointer p-4 sm:p-5 shadow-sm ${
+                className={`rounded-2xl border transition-all cursor-pointer p-3 sm:p-4 md:p-5 shadow-sm ${
                   notification.read ? 'bg-white border-blue-100' : 'bg-blue-50 border-blue-200'
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
                   <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
                     {(() => {
                       const TypeIcon = typeMeta[notification.type].icon;
@@ -82,20 +83,20 @@ export function ProfessionalNotifications() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900">{notification.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900">{notification.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{notification.message}</p>
                     {notification.contactInfo && (
-                      <p className="text-sm text-gray-500 mt-1">{notification.contactInfo}</p>
+                      <p className="text-xs md:text-sm text-gray-500 mt-1">{notification.contactInfo}</p>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0 self-start md:self-center">
                     {notification.actionHref && (
                       notification.actionHref.startsWith('/') ? (
                         <Link
                           to={notification.actionHref}
                           onClick={(event) => event.stopPropagation()}
-                          className="inline-flex items-center rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
+                          className="inline-flex items-center rounded-lg bg-blue-500 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-600 transition-colors whitespace-nowrap"
                         >
                           {notification.actionLabel ?? 'Voir'}
                         </Link>
@@ -105,7 +106,7 @@ export function ProfessionalNotifications() {
                           target="_blank"
                           rel="noreferrer"
                           onClick={(event) => event.stopPropagation()}
-                          className="inline-flex items-center rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
+                          className="inline-flex items-center rounded-lg bg-blue-500 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-white hover:bg-blue-600 transition-colors whitespace-nowrap"
                         >
                           {notification.actionLabel ?? 'Voir'}
                         </a>
@@ -120,7 +121,7 @@ export function ProfessionalNotifications() {
                         }}
                         variant="ghost"
                         size="sm"
-                        className="text-blue-500 hover:bg-blue-50"
+                        className="text-blue-500 hover:bg-blue-50 p-1"
                       >
                         <CheckCircle2 className="w-5 h-5" />
                       </Button>
@@ -140,35 +141,35 @@ export function ProfessionalNotifications() {
                     markAsRead(notification.id);
                   }
                 }}
-                className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 transition-all cursor-pointer ${
+                className={`bg-white rounded-2xl shadow-lg p-4 sm:p-6 border-l-4 transition-all cursor-pointer ${
                   notification.read ? 'border-gray-300' : 'border-green-500'
                 }`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3 flex-wrap">
-                      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border ${typeMeta[notification.type].className}`}>
-                        {(() => {
-                          const TypeIcon = typeMeta[notification.type].icon;
-                          return <TypeIcon className="w-3.5 h-3.5" />;
-                        })()}
-                        {typeMeta[notification.type].label}
-                      </span>
-                      <h3 className="text-lg font-semibold text-gray-900">{notification.title}</h3>
-                      {!notification.read && (
-                        <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                      )}
-                    </div>
-                    <p className="text-gray-600 mb-3">{notification.message}</p>
-                    {notification.contactInfo && (
-                      <p className="text-sm text-gray-500 mb-3">{notification.contactInfo}</p>
+                <div className="flex flex-col gap-3 md:gap-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`inline-flex items-center gap-2 px-2.5 py-1 md:px-3 md:py-1 rounded-full text-xs font-semibold border ${typeMeta[notification.type].className}`}>
+                      {(() => {
+                        const TypeIcon = typeMeta[notification.type].icon;
+                        return <TypeIcon className="w-3.5 h-3.5" />;
+                      })()}
+                      {typeMeta[notification.type].label}
+                    </span>
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 flex-1">{notification.title}</h3>
+                    {!notification.read && (
+                      <span className="inline-block w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></span>
                     )}
+                  </div>
+                  <p className="text-gray-600 text-sm md:text-base">{notification.message}</p>
+                  {notification.contactInfo && (
+                    <p className="text-xs md:text-sm text-gray-500">{notification.contactInfo}</p>
+                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
                     {notification.actionHref && (
                       notification.actionHref.startsWith('/') ? (
                         <Link
                           to={notification.actionHref}
                           onClick={(event) => event.stopPropagation()}
-                          className="inline-flex items-center text-sm font-medium text-green-600 hover:text-green-700 mb-3"
+                          className="inline-flex items-center text-xs md:text-sm font-medium text-green-600 hover:text-green-700"
                         >
                           {notification.actionLabel ?? 'Ouvrir'}
                         </Link>
@@ -178,29 +179,29 @@ export function ProfessionalNotifications() {
                           target="_blank"
                           rel="noreferrer"
                           onClick={(event) => event.stopPropagation()}
-                          className="inline-flex items-center text-sm font-medium text-green-600 hover:text-green-700 mb-3"
+                          className="inline-flex items-center text-xs md:text-sm font-medium text-green-600 hover:text-green-700"
                         >
                           {notification.actionLabel ?? 'Ouvrir'}
                         </a>
                       )
                     )}
-                    <p className="text-sm text-gray-500">{new Date(notification.createdAt).toLocaleString('fr-FR')}</p>
+                    <p className="text-xs text-gray-500 ml-auto">{new Date(notification.createdAt).toLocaleString('fr-FR')}</p>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    {!notification.read && (
-                      <Button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          markAsRead(notification.id);
-                        }}
-                        variant="ghost"
-                        size="sm"
-                        className="text-green-500 hover:bg-green-50"
-                      >
-                        <CheckCircle2 className="w-5 h-5" />
-                      </Button>
-                    )}
-                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {!notification.read && (
+                    <Button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        markAsRead(notification.id);
+                      }}
+                      variant="ghost"
+                      size="sm"
+                      className="text-green-500 hover:bg-green-50"
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             )

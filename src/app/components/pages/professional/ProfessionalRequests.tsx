@@ -96,43 +96,88 @@ export function ProfessionalRequests() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-300 text-blue-600 hover:bg-blue-50 rounded-lg"
-                  >
-                    <Phone className="w-4 h-4 mr-1" />
-                    Appeler
-                  </Button>
+                <div className="pt-4 border-t border-gray-200 space-y-2 md:space-y-0">
+                  {/* Mobile: Stacked buttons */}
+                  <div className="md:hidden flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 border-blue-300 text-blue-600 hover:bg-blue-50 rounded-lg"
+                      >
+                        <Phone className="w-4 h-4 lg:mr-1" />
+                        <span className="hidden lg:inline">Appeler</span>
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 border-green-300 text-green-600 hover:bg-green-50 rounded-lg"
+                      >
+                        <MessageCircle className="w-4 h-4 lg:mr-1" />
+                        <span className="hidden lg:inline">Message</span>
+                      </Button>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleReject(request.id)}
+                        variant="outline"
+                        className="flex-1 border-red-300 text-red-600 hover:bg-red-50 rounded-xl"
+                      >
+                        <X className="w-5 h-5 lg:mr-2" />
+                        <span className="hidden lg:inline">Refuser</span>
+                      </Button>
+                      
+                      <Button
+                        onClick={() => handleAcceptClick(request.id)}
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-xl"
+                      >
+                        <Check className="w-5 h-5 lg:mr-2" />
+                        <span className="hidden lg:inline">Accepter</span>
+                      </Button>
+                    </div>
+                  </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-green-300 text-green-600 hover:bg-green-50 rounded-lg"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-1" />
-                    Message
-                  </Button>
-                  
-                  <div className="flex-1" />
-                  
-                  <Button
-                    onClick={() => handleReject(request.id)}
-                    variant="outline"
-                    className="border-red-300 text-red-600 hover:bg-red-50 rounded-xl"
-                  >
-                    <X className="w-5 h-5 mr-2" />
-                    Refuser
-                  </Button>
-                  
-                  <Button
-                    onClick={() => handleAcceptClick(request.id)}
-                    className="bg-green-500 hover:bg-green-600 text-white rounded-xl"
-                  >
-                    <Check className="w-5 h-5 mr-2" />
-                    Accepter
-                  </Button>
+                  {/* Desktop: Horizontal buttons */}
+                  <div className="hidden md:flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50 rounded-lg"
+                    >
+                      <Phone className="w-4 h-4 mr-1" />
+                      Appeler
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-green-300 text-green-600 hover:bg-green-50 rounded-lg"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-1" />
+                      Message
+                    </Button>
+                    
+                    <div className="flex-1" />
+                    
+                    <Button
+                      onClick={() => handleReject(request.id)}
+                      variant="outline"
+                      className="border-red-300 text-red-600 hover:bg-red-50 rounded-xl"
+                    >
+                      <X className="w-5 h-5 mr-2" />
+                      Refuser
+                    </Button>
+                    
+                    <Button
+                      onClick={() => handleAcceptClick(request.id)}
+                      className="bg-green-500 hover:bg-green-600 text-white rounded-xl"
+                    >
+                      <Check className="w-5 h-5 mr-2" />
+                      Accepter
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}

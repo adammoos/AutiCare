@@ -280,7 +280,7 @@ export function ProfessionalServices() {
         <div className="space-y-4">
           {services.map((service) => (
             <Card key={service.id} className="p-6 border-blue-100 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold mb-2 text-gray-800">{service.therapyType}</h3>
                   <p className="text-gray-600 mb-3">{service.description}</p>
@@ -297,7 +297,7 @@ export function ProfessionalServices() {
                   </div>
                 </div>
                 
-                <div className="flex gap-2 ml-4">
+                <div className="flex gap-2 md:flex-shrink-0">
                   <Dialog open={editingService?.id === service.id} onOpenChange={(open) => {
                     if (!open) {
                       setEditingService(null);
@@ -309,9 +309,10 @@ export function ProfessionalServices() {
                         variant="outline"
                         size="sm"
                         onClick={() => startEdit(service)}
-                        className="border-blue-300 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        className="border-blue-300 text-blue-600 hover:bg-blue-50 rounded-lg flex-1 md:flex-none"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4 md:mr-1" />
+                        <span className="hidden md:inline">Modifier</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
@@ -326,9 +327,10 @@ export function ProfessionalServices() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDeleteService(service.id)}
-                    className="border-red-300 text-red-600 hover:bg-red-50 rounded-lg"
+                    className="border-red-300 text-red-600 hover:bg-red-50 rounded-lg flex-1 md:flex-none"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 md:mr-1" />
+                    <span className="hidden md:inline">Supprimer</span>
                   </Button>
                 </div>
               </div>
